@@ -1,5 +1,5 @@
 #!/home/changrong/miniconda3/bin/python
-
+##python ./fastq_dir_to_samplesheet.py -st auto /data/zhiyu/data/Project/ninth_tooth/rm_host tt.tsv -r1 "_R1_raw.filtered.fastq.gz" -r2 "_R2_raw.filtered.fastq.gz" 
 import os
 import sys
 import glob
