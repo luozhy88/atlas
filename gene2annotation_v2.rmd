@@ -1,0 +1,400 @@
+title: "map gene count to annotation"
+author: "YNYK"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+  number_sections: no
+toc: yes
+toc_depth: 6
+toc_float: true
+self_contained: true
+thumbnails: true
+lightbox: true
+gallery: true
+use_bookdown: false
+highlight: haddock
+---
+
+## Load package
+```{r}
+library(dplyr)
+library(tibble)
+library(tidyr)
+library(foreach)
+library(doParallel)
+library(arrow)
+library(rhdf5)
+```
+
+## Load data
+```{r}
+eggNog_df <- read.delim2("Genecatalog/annotations/eggNog.tsv",sep = "\t",header=2)[c(-1),]
+eggNog_df<-eggNog_df %>% dplyr::filter(!grepl("#query",eggNog_df$Query))
+rownames(eggNog_df)<-eggNog_df$Query
+
+
+##gene name
+
+gene <- read_parquet("Genecatalog/counts/gene_coverage_stats.parquet")
+colnames(gene)[1]<-"gene_name"
+gene_name<-stringr::word(gene$gene_name,1,1,sep=stringr::fixed(" "))
+
+
+filename = "Genecatalog/counts/median_coverage.h5"
+Nmapped_count <- h5read(filename, "data")
+attributes= h5readAttributes(filename, "data")
+colnames(Nmapped_count) <- attributes$sample_names
+rownames(Nmapped_count)<-gene_name
+
+
+# Nmapped_count <- read.delim2("Genecatalog/counts/Nmapped_reads.tsv",sep = "\t",header=1) %>% column_to_rownames("X.ID")
+annot_count<-merge(eggNog_df,Nmapped_count,by=0)
+dim(annot_count)
+```
+
+## KO table (one gene to many KO)
+```{r,message=F}
+count_colname<-c("Query","KO",colnames(Nmapped_count) )
+KO <- annot_count[,count_colname]
+KO <- KO[KO$KO != "-",]
+KO <- KO[,-1]
+
+
+KO_extended <- c()
+file.remove("Genecatalog/annotations/KO_count.tsv")
+
+
+write.table(colnames(KO) %>% t(),file = "Genecatalog/annotations/KO_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(KO)[1]){
+  id=KO[i,]
+  if (grepl(",",id$KO)){
+    kos <- strsplit(id$KO,split = ",")[[1]]
+    for(n in 1:length(kos)){
+      tmp <- data.frame(kos[n],id[-1] )
+      colnames(tmp)[1] <- "KO"
+      KO_extended <- bind_rows(KO_extended,tmp )
+    }
+  }else{
+  KO_extended <- bind_rows(KO_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(KO_extended,file = "Genecatalog/annotations/KO_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    KO_extended <- c()
+    
+    }
+}
+
+
+# read table
+KO_c <- read.delim2("Genecatalog/annotations/KO_count.tsv")
+KO_c$KO <- gsub("ko:","",KO_c$KO)
+
+KO_c2 <- KO_c %>% arrange(KO) %>% 
+  group_by(KO) %>%
+  summarise_all(.funs = sum)
+
+write.csv(KO_c2,file = "Genecatalog/annotations/KO_count_grouped.csv",row.names = F,quote = F)
+
+unique(KO_c$KO) %>% length()
+
+```
+
+
+
+
+## CAZy (one gene to many )
+```{r}
+count_colname<-c("Query","CAZy",colnames(Nmapped_count) )
+ca <- annot_count[,count_colname]
+ca <- ca[ca$CAZy != "-",]
+ca <- ca[,-1]
+
+
+ca_extended <- c()
+file.remove("Genecatalog/annotations/CAZy_count.tsv")
+
+
+write.table(colnames(ca) %>% t(),file = "Genecatalog/annotations/CAZy_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(ca)[1]){
+  id=ca[i,]
+  if (grepl(",",id$CAZy)){
+    cas <- strsplit(id$CAZy,split = ",")[[1]]
+    for(n in 1:length(cas)){
+      tmp <- data.frame(cas[n],id[-1] )
+      colnames(tmp)[1] <- "CAZy"
+      ca_extended <- bind_rows(ca_extended,tmp )
+    }
+  }else{
+  ca_extended <- bind_rows(ca_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(ca_extended,file = "Genecatalog/annotations/CAZy_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    ca_extended <- c()
+    
+    }
+}
+
+
+# read table
+ca_c <- read.delim2("Genecatalog/annotations/CAZy_count.tsv")
+
+
+ca_c2 <- ca_c %>% arrange(CAZy) %>% 
+  group_by(CAZy) %>%
+  summarise_all(.funs = sum)
+
+write.csv(ca_c2,file = "Genecatalog/annotations/CAZy_count_grouped.csv",row.names = F,quote = F)
+
+unique(ca_c$CAZy) %>% length()
+
+
+```
+
+
+## EC (one gene to many )
+```{r}
+count_colname<-c("Query","EC",colnames(Nmapped_count) )
+EC <- annot_count[,count_colname]
+EC <- EC[EC$EC != "-",]
+EC <- EC[,-1]
+
+
+EC_extended <- c()
+file.remove("Genecatalog/annotations/EC_count.tsv")
+
+
+write.table(colnames(EC) %>% t(),file = "Genecatalog/annotations/EC_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(EC)[1]){
+  id=EC[i,]
+  if (grepl(",",id$EC)){
+    ECs <- strsplit(id$EC,split = ",")[[1]]
+    for(n in 1:length(ECs)){
+      tmp <- data.frame(ECs[n],id[-1] )
+      colnames(tmp)[1] <- "EC"
+      EC_extended <- bind_rows(EC_extended,tmp )
+    }
+  }else{
+  EC_extended <- bind_rows(EC_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(EC_extended,file = "Genecatalog/annotations/EC_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    EC_extended <- c()
+    
+    }
+}
+
+
+# read table
+EC_c <- read.delim2("Genecatalog/annotations/EC_count.tsv")
+#EC_c$EC <- gsub("EC:","",EC_c$EC)
+
+EC_c2 <- EC_c %>% arrange(EC) %>% 
+  group_by(EC) %>%
+  summarise_all(.funs = sum)
+
+write.csv(EC_c2,file = "Genecatalog/annotations/EC_count_grouped.csv",row.names = F,quote = F)
+
+unique(EC_c$EC) %>% length()
+
+```
+
+## KEGG_Pathway (one gene to many )
+```{r}
+count_colname<-c("Query","KEGG_Pathway",colnames(Nmapped_count) )
+KEGG_Pathway <- annot_count[,count_colname]
+KEGG_Pathway <- KEGG_Pathway[KEGG_Pathway$KEGG_Pathway != "-",]
+KEGG_Pathway <- KEGG_Pathway[,-1]
+
+
+KEGG_Pathway_extended <- c()
+file.remove("Genecatalog/annotations/KEGG_Pathway_count.tsv")
+
+
+write.table(colnames(KEGG_Pathway) %>% t(),file = "Genecatalog/annotations/KEGG_Pathway_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(KEGG_Pathway)[1]){
+  i=1
+  id=KEGG_Pathway[i,]
+  if (grepl(",",id$KEGG_Pathway)){
+    KEGG_Pathways <- strsplit(id$KEGG_Pathway,split = ",")[[1]]
+    for(n in 1:length(KEGG_Pathways)){
+      n=1
+      tmp <- data.frame(KEGG_Pathways[n],id[-1] )
+      colnames(tmp)[1] <- "KEGG_Pathway"
+      KEGG_Pathway_extended <- bind_rows(KEGG_Pathway_extended,tmp )
+    }
+  }else{
+  KEGG_Pathway_extended <- bind_rows(KEGG_Pathway_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(KEGG_Pathway_extended,file = "Genecatalog/annotations/KEGG_Pathway_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    KEGG_Pathway_extended <- c()
+    
+    }
+}
+
+
+# read table
+KEGG_Pathway_c <- read.delim2("Genecatalog/annotations/KEGG_Pathway_count.tsv")
+KEGG_Pathway_c$KEGG_Pathway <- gsub("KEGG_Pathway:","",KEGG_Pathway_c$KEGG_Pathway)
+
+KEGG_Pathway_c2 <- KEGG_Pathway_c %>% arrange(KEGG_Pathway) %>% 
+  group_by(KEGG_Pathway) %>%
+  summarise_all(.funs = sum)
+
+write.csv(KEGG_Pathway_c2,file = "Genecatalog/annotations/KEGG_Pathway_count_grouped.csv",row.names = F,quote = F)
+
+
+
+
+```
+
+## KEGG_Module 
+
+```{r}
+count_colname<-c("Query","KEGG_Module",colnames(Nmapped_count) )
+KEGG_Module <- annot_count[,count_colname]
+KEGG_Module <- KEGG_Module[KEGG_Module$KEGG_Module != "-",]
+KEGG_Module <- KEGG_Module[,-1]
+
+
+KEGG_Module_extended <- c()
+file.remove("Genecatalog/annotations/KEGG_Module_count.tsv")
+
+
+write.table(colnames(KEGG_Module) %>% t(),file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(KEGG_Module)[1]){
+  # i=1
+  id=KEGG_Module[i,]
+  if (grepl(",",id$KEGG_Module)){
+    KEGG_Modules <- strsplit(id$KEGG_Module,split = ",")[[1]]
+    for(n in 1:length(KEGG_Modules)){
+      # n=1
+      tmp <- data.frame(KEGG_Modules[n],id[-1] )
+      colnames(tmp)[1] <- "KEGG_Module"
+      KEGG_Module_extended <- bind_rows(KEGG_Module_extended,tmp )
+    }
+  }else{
+    KEGG_Module_extended <- bind_rows(KEGG_Module_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(KEGG_Module_extended,file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    KEGG_Module_extended <- c()
+    
+  }
+}
+
+
+# read table
+KEGG_Module_c <- read.delim2("Genecatalog/annotations/KEGG_Module_count.tsv")
+KEGG_Module_c$KEGG_Module <- gsub("KEGG_Module:","",KEGG_Module_c$KEGG_Module)
+
+KEGG_Module_c2 <- KEGG_Module_c %>% arrange(KEGG_Module) %>% 
+  group_by(KEGG_Module) %>%
+  summarise_all(.funs = sum)
+KEGG_Module_c2 <- KEGG_Module_c2 %>% data.frame()
+write.csv(KEGG_Module_c2,file = "Genecatalog/annotations/KEGG_Module_count_grouped.csv",row.names = F,quote = F)
+```
+
+
+
+
+### KEGG_Module filtered
+```{r}
+kegg_modules <- read.delim2("genomes/annotations/dram/kegg_modules.tsv",header = T)  
+kegg_modules$step_coverage =kegg_modules$step_coverage %>% as.numeric()
+kegg_modules=kegg_modules%>% dplyr::filter(step_coverage>=0.8)
+kegg_modules=kegg_modules%>% dplyr::select(module,module_name) %>% dplyr::distinct(module,.keep_all = T)
+# kegg_modules$module_name <- stringr::word(kegg_modules$module_name,1,1,stringr::fixed(","))
+# kegg_modules$name_id<- paste(kegg_modules$module,"_",kegg_modules$module_name)
+# kegg_modules=kegg_modules %>% dplyr::select(-module_name)
+
+KEGG_Module_c2.modules=merge(kegg_modules,KEGG_Module_c2,by.x = "module",by.y ="KEGG_Module" ,all.x = T)
+write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_count_grouped_step_coverage0.8.csv",row.names = F,quote = F)
+```
+
+
+
+## PFAMs (one gene to many )
+```{r}
+count_colname<-c("Query","PFAMs",colnames(Nmapped_count) )
+PFAMs <- annot_count[,count_colname]
+PFAMs <- PFAMs[PFAMs$PFAMs != "-",]
+PFAMs <- PFAMs[,-1]
+
+
+PFAMs_extended <- c()
+file.remove("Genecatalog/annotations/PFAMs_count.tsv")
+
+
+write.table(colnames(PFAMs) %>% t(),file = "Genecatalog/annotations/PFAMs_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(PFAMs)[1]){
+  id=PFAMs[i,]
+  if (grepl(",",id$PFAMs)){
+    PFAMss <- strsplit(id$PFAMs,split = ",")[[1]]
+    for(n in 1:length(PFAMss)){
+      tmp <- data.frame(PFAMss[n],id[-1] )
+      colnames(tmp)[1] <- "PFAMs"
+      PFAMs_extended <- bind_rows(PFAMs_extended,tmp )
+    }
+  }else{
+  PFAMs_extended <- bind_rows(PFAMs_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(PFAMs_extended,file = "Genecatalog/annotations/PFAMs_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    PFAMs_extended <- c()
+    
+    }
+}
+
+
+# read table
+PFAMs_c <- read.delim2("Genecatalog/annotations/PFAMs_count.tsv")
+PFAMs_c$PFAMs <- gsub("PFAMs:","",PFAMs_c$PFAMs)
+
+PFAMs_c2 <- PFAMs_c %>% arrange(PFAMs) %>% 
+  group_by(PFAMs) %>%
+  summarise_all(.funs = sum)
+
+write.csv(PFAMs_c2,file = "Genecatalog/annotations/PFAMs_count_grouped.csv",row.names = F,quote = F)
+
+unique(PFAMs_c$PFAMs) %>% length()
+
+
+```
+
+
+
+
+
+
+
