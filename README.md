@@ -7,7 +7,7 @@ pip install --editable .
 atlas init --db-dir databases path/to/fastq/files    
 atlas run all --keep-going  --report     
 
-
+####################################################################
 
 
 conda config --add channels defaults  
