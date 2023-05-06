@@ -31,5 +31,5 @@ checkm2 testrun --database_path /data/zhiyu/Database/atlas/atlas2.15.0/databases
 atlas run all --keep-going --wrapper-prefix "/data/zhiyu/data/software/atlas-2.15.2/snakemake-wrappers/" --omit-from run_decontamination  
 
 ## dag
-流程图  
+流程图,sample.tsv最好放一个样本，否则图很大  
 atlas run all --dryrun --dag | dot -Tpdf > dag.pdf  
