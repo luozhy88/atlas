@@ -29,3 +29,7 @@ checkm2 testrun --database_path /data/zhiyu/Database/atlas/atlas2.15.0/databases
 ## wrapper-prefix
 如果一些github不能下载，采用如下方式：  
 atlas run all --keep-going --wrapper-prefix "/data/zhiyu/data/software/atlas-2.15.2/snakemake-wrappers/" --omit-from run_decontamination  
+
+## dag
+流程图  
+atlas run all --dryrun --dag | dot -Tpdf > dag.pdf  
