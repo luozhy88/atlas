@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - bioconda
+  - default
+  - nodefaults
+dependencies:
+  - vembrane =1.0.0

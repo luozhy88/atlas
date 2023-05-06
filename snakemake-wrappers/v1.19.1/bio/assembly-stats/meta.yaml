@@ -1,0 +1,14 @@
+name: "assembly-stats"
+description: Generates report of summary statistics for a genome assembly
+url: https://github.com/sanger-pathogens/assembly-stats
+authors:
+  - Pathogen Informatics, Wellcome Sanger Institute (assembly-stats tool) - https://github.com/sanger-pathogens
+  - Max Cummins (Snakemake wrapper [unaffiliated with Wellcome Sanger Institute])
+input:
+  - assembly: Genomic assembly (fasta format)
+output:
+  - assembly_stats: Assembly statistics (format of your choosing, default = tab-delimited)
+params:
+  - extra: Optional parameters, see `assembly-stats official documentation <https://github.com/sanger-pathogens/assembly-stats#usage>`_
+notes: |
+  This tool/wrapper does not handle multi threading

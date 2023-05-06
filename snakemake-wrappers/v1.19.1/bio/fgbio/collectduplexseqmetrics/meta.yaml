@@ -1,0 +1,5 @@
+name: "fgbio CollectDuplexSeqMetrics"
+description: Collects a suite of metrics to QC duplex sequencing data.
+url: https://fulcrumgenomics.github.io/fgbio/
+authors:
+  - Patrik Smeds

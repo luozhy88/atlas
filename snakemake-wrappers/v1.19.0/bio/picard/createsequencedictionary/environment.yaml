@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - picard =2.27.4
+  - snakemake-wrapper-utils =0.5.2

@@ -1,0 +1,20 @@
+name: bamtools filter
+url: https://github.com/pezmaster31/bamtools
+description: Filters BAM files. For more information about bamtools see `bamtools documentation <http://stab.st-andrews.ac.uk/wiki/index.php/Bamtools>`_
+authors:
+  - Antonie Vietor
+input:
+  - bam files (.bam), must be in first position
+output:
+  - bam file (.bam), must be in first position
+params:
+  - tags: filtering tags
+  - min_size: minimum insert size
+  - max_size: maximum insert size
+  - min_length: minimum read length
+  - max_length: maximum read length
+  - additional_params: Other filtering and optional parameters
+notes: |
+  A complete usage documentation is available here: https://raw.githubusercontent.com/wiki/pezmaster31/bamtools/Tutorial_Toolkit_BamTools-1.0.pdf
+
+  This tool/wrapper does not handle multi threading
