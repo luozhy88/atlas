@@ -19,3 +19,11 @@ mamba create -y -n atlasenv metagenome-atlas=2.15.0
 
 atlas init --db-dir databases path/to/fastq/files  
 atlas run all --keep-going  --report   
+
+
+# Note
+## checkm2 error  
+checkm2 database --setdblocation /data/zhiyu/Database/atlas/atlas2.15.0/databases/CheckM2/CheckM2_database/uniref100.KO.1.dmnd   
+## wrapper-prefix
+如果一些github不能下载，采用如下方式：  
+atlas run all --keep-going --wrapper-prefix "/data/zhiyu/data/software/atlas-2.15.2/snakemake-wrappers/" --omit-from run_decontamination  
