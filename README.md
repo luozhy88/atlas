@@ -1,4 +1,5 @@
 # atlas
+https://github.com/metagenome-atlas/atlas/tree/master  
 ## install
 mamba env create -n atlas.2.15.2 --file atlasenv.yml  
 conda activate atlas.2.15.2   
