@@ -36,3 +36,7 @@ atlas run all --wrapper-prefix "/data/zhiyu/data/software/snakemake-wrappers/"
 ## dag
 流程图,sample.tsv最好放一个样本，否则图很大  
 atlas run all --dryrun --dag | dot -Tpdf > dag.pdf  
+
+
+# annotation
+Rscript -e "rmarkdown::render('gene2annotation_v2.Rmd')"
