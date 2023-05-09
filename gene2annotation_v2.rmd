@@ -52,6 +52,77 @@ annot_count<-merge(eggNog_df,Nmapped_count,by=0)
 dim(annot_count)
 ```
 
+
+## KEGG_Module 
+
+```{r}
+count_colname<-c("Query","KEGG_Module",colnames(Nmapped_count) )
+KEGG_Module <- annot_count[,count_colname]
+KEGG_Module <- KEGG_Module[KEGG_Module$KEGG_Module != "-",]
+KEGG_Module <- KEGG_Module[,-1]
+
+
+KEGG_Module_extended <- c()
+file.remove("Genecatalog/annotations/KEGG_Module_count.tsv")
+
+
+write.table(colnames(KEGG_Module) %>% t(),file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+
+for (i in 1 : dim(KEGG_Module)[1]){
+  # i=1
+  id=KEGG_Module[i,]
+  if (grepl(",",id$KEGG_Module)){
+    KEGG_Modules <- strsplit(id$KEGG_Module,split = ",")[[1]]
+    for(n in 1:length(KEGG_Modules)){
+      # n=1
+      tmp <- data.frame(KEGG_Modules[n],id[-1] )
+      colnames(tmp)[1] <- "KEGG_Module"
+      KEGG_Module_extended <- bind_rows(KEGG_Module_extended,tmp )
+    }
+  }else{
+    KEGG_Module_extended <- bind_rows(KEGG_Module_extended,id)
+  }
+  
+  if(i %% 500 == 0){
+    
+    #print(i)
+    
+    write.table(KEGG_Module_extended,file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
+    KEGG_Module_extended <- c()
+    
+  }
+}
+
+
+# read table
+KEGG_Module_c <- read.delim2("Genecatalog/annotations/KEGG_Module_count.tsv")
+KEGG_Module_c$KEGG_Module <- gsub("KEGG_Module:","",KEGG_Module_c$KEGG_Module)
+
+KEGG_Module_c2 <- KEGG_Module_c %>% arrange(KEGG_Module) %>% 
+  group_by(KEGG_Module) %>%
+  summarise_all(.funs = sum)
+KEGG_Module_c2 <- KEGG_Module_c2 %>% data.frame()
+write.csv(KEGG_Module_c2,file = "Genecatalog/annotations/KEGG_Module_count_grouped.csv",row.names = F,quote = F)
+```
+
+
+
+
+### KEGG_Module filtered
+```{r}
+kegg_modules <- read.delim2("genomes/annotations/dram/kegg_modules.tsv",header = T)  
+kegg_modules$step_coverage =kegg_modules$step_coverage %>% as.numeric()
+kegg_modules=kegg_modules%>% dplyr::filter(step_coverage>=0.8)
+kegg_modules=kegg_modules%>% dplyr::select(module,module_name) %>% dplyr::distinct(module,.keep_all = T)
+# kegg_modules$module_name <- stringr::word(kegg_modules$module_name,1,1,stringr::fixed(","))
+# kegg_modules$name_id<- paste(kegg_modules$module,"_",kegg_modules$module_name)
+# kegg_modules=kegg_modules %>% dplyr::select(-module_name)
+
+KEGG_Module_c2.modules=merge(kegg_modules,KEGG_Module_c2,by.x = "module",by.y ="KEGG_Module" ,all.x = T)
+write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_count_grouped_step_coverage0.8.csv",row.names = F,quote = T)
+```
+
+
 ## KO table (one gene to many KO)
 ```{r,message=F}
 count_colname<-c("Query","KO",colnames(Nmapped_count) )
@@ -266,75 +337,6 @@ write.csv(KEGG_Pathway_c2,file = "Genecatalog/annotations/KEGG_Pathway_count_gro
 
 
 
-```
-
-## KEGG_Module 
-
-```{r}
-count_colname<-c("Query","KEGG_Module",colnames(Nmapped_count) )
-KEGG_Module <- annot_count[,count_colname]
-KEGG_Module <- KEGG_Module[KEGG_Module$KEGG_Module != "-",]
-KEGG_Module <- KEGG_Module[,-1]
-
-
-KEGG_Module_extended <- c()
-file.remove("Genecatalog/annotations/KEGG_Module_count.tsv")
-
-
-write.table(colnames(KEGG_Module) %>% t(),file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
-
-for (i in 1 : dim(KEGG_Module)[1]){
-  # i=1
-  id=KEGG_Module[i,]
-  if (grepl(",",id$KEGG_Module)){
-    KEGG_Modules <- strsplit(id$KEGG_Module,split = ",")[[1]]
-    for(n in 1:length(KEGG_Modules)){
-      # n=1
-      tmp <- data.frame(KEGG_Modules[n],id[-1] )
-      colnames(tmp)[1] <- "KEGG_Module"
-      KEGG_Module_extended <- bind_rows(KEGG_Module_extended,tmp )
-    }
-  }else{
-    KEGG_Module_extended <- bind_rows(KEGG_Module_extended,id)
-  }
-  
-  if(i %% 500 == 0){
-    
-    #print(i)
-    
-    write.table(KEGG_Module_extended,file = "Genecatalog/annotations/KEGG_Module_count.tsv",append = T,sep="\t",quote = F,row.names = F,col.names = F)
-    KEGG_Module_extended <- c()
-    
-  }
-}
-
-
-# read table
-KEGG_Module_c <- read.delim2("Genecatalog/annotations/KEGG_Module_count.tsv")
-KEGG_Module_c$KEGG_Module <- gsub("KEGG_Module:","",KEGG_Module_c$KEGG_Module)
-
-KEGG_Module_c2 <- KEGG_Module_c %>% arrange(KEGG_Module) %>% 
-  group_by(KEGG_Module) %>%
-  summarise_all(.funs = sum)
-KEGG_Module_c2 <- KEGG_Module_c2 %>% data.frame()
-write.csv(KEGG_Module_c2,file = "Genecatalog/annotations/KEGG_Module_count_grouped.csv",row.names = F,quote = F)
-```
-
-
-
-
-### KEGG_Module filtered
-```{r}
-kegg_modules <- read.delim2("genomes/annotations/dram/kegg_modules.tsv",header = T)  
-kegg_modules$step_coverage =kegg_modules$step_coverage %>% as.numeric()
-kegg_modules=kegg_modules%>% dplyr::filter(step_coverage>=0.8)
-kegg_modules=kegg_modules%>% dplyr::select(module,module_name) %>% dplyr::distinct(module,.keep_all = T)
-# kegg_modules$module_name <- stringr::word(kegg_modules$module_name,1,1,stringr::fixed(","))
-# kegg_modules$name_id<- paste(kegg_modules$module,"_",kegg_modules$module_name)
-# kegg_modules=kegg_modules %>% dplyr::select(-module_name)
-
-KEGG_Module_c2.modules=merge(kegg_modules,KEGG_Module_c2,by.x = "module",by.y ="KEGG_Module" ,all.x = T)
-write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_count_grouped_step_coverage0.8.csv",row.names = F,quote = T)
 ```
 
 
