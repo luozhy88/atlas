@@ -334,7 +334,7 @@ kegg_modules=kegg_modules%>% dplyr::select(module,module_name) %>% dplyr::distin
 # kegg_modules=kegg_modules %>% dplyr::select(-module_name)
 
 KEGG_Module_c2.modules=merge(kegg_modules,KEGG_Module_c2,by.x = "module",by.y ="KEGG_Module" ,all.x = T)
-write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_count_grouped_step_coverage0.8.csv",row.names = F,quote = F)
+write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_count_grouped_step_coverage0.8.csv",row.names = F,quote = T)
 ```
 
 
