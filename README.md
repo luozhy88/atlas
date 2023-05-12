@@ -22,7 +22,7 @@ mamba create -y -n atlasenv metagenome-atlas=2.15.1
 atlas init --db-dir databases path/to/fastq/files  
 atlas run all --keep-going  --report   
 contaminant_references:  
-mm: /data/yizhou/databases/atlas_databases/atlas_mask_genome/mouse_masked.fa  
+  mm: /data/yizhou/databases/atlas_databases/atlas_mask_genome/mouse_masked.fa  
 
 
 # Note
