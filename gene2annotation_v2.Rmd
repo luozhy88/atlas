@@ -43,7 +43,7 @@ gene_name<-stringr::word(gene$gene_name,1,1,sep=stringr::fixed(" "))
 filename = "Genecatalog/counts/median_coverage.h5"
 Nmapped_count <- h5read(filename, "data")
 attributes= h5readAttributes(filename, "data")
-colnames(Nmapped_count) <- attributes$sample_names
+colnames(Nmapped_count) <- attributes$sample_names %>% make.names()
 rownames(Nmapped_count)<-gene_name
 
 
