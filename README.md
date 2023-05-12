@@ -24,7 +24,8 @@ atlas run all --keep-going  --report
 contaminant_references:  
      mm: /data/yizhou/databases/atlas_databases/atlas_mask_genome/mouse_masked.fa  
 
-
+# fq
+ rename 's/^[^_]+_//' *.fastq.gz*
 # Note
 ## checkm2 error  
 checkm2 database --setdblocation /data/zhiyu/Database/atlas/atlas2.15.0/databases/CheckM2/CheckM2_database/uniref100.KO.1.dmnd   
