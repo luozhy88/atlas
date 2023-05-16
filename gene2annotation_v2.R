@@ -109,7 +109,7 @@ write.csv(KEGG_Module_c2.modules,file = "Genecatalog/annotations/KEGG_Module_cou
 
 
 ## KO table (one gene to many KO)
-{r,message=F}
+
 count_colname<-c("Query","KO",colnames(Nmapped_count) )
 KO <- annot_count[,count_colname]
 KO <- KO[KO$KO != "-",]
