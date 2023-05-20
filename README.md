@@ -26,6 +26,8 @@ contaminant_references:
 
 # fq
  rename -n 's/^[^_]+_//' *.fastq.gz*
+ rename 's/.R/_R/g' *gz  
+ rename  's/\_/\./g' *gz  
 # Note
 ## checkm2 error  
 checkm2 database --setdblocation /data/zhiyu/Database/atlas/atlas2.15.0/databases/CheckM2/CheckM2_database/uniref100.KO.1.dmnd   
