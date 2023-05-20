@@ -25,7 +25,7 @@ contaminant_references:
      mm: /data/yizhou/databases/atlas_databases/atlas_mask_genome/mouse_masked.fa  
 
 # fq
- rename -n 's/^[^_]+_//' *.fastq.gz*
+ rename -n 's/^[^_]+_//' *.fastq.gz*  
  rename 's/.R/_R/g' *gz  
  rename  's/\_/\./g' *gz  
 # Note
